@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type IncidentResponse struct {
@@ -39,24 +37,35 @@ type Train struct {
 	LocationName    string
 }
 
-func GetRailIncidents(c *gin.Context) {
+func GetRailIncidents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var incidents IncidentResponse
 
 	WMATA_API_KEY := utils.GetEnvVar("WMATA_API_KEY")
 	WMATA_API_HOST := utils.GetEnvVar("WMATA_API_HOST")
 
 	url := fmt.Sprintf("%s/Incidents.svc/json/Incidents?api_key=%s", WMATA_API_HOST, WMATA_API_KEY)
-	response, err := http.Get(url)
+	response, httpErr := http.Get(url)
 
-	if err != nil {
-		log.Fatalln(err)
+	if httpErr != nil {
+		log.Fatalln(httpErr)
 	}
 
 	parseResponse(response, &incidents)
-	c.IndentedJSON(http.StatusOK, incidents.Incidents)
+
+	jsonResp, jsonErr := json.Marshal(incidents.Incidents)
+
+	if jsonErr != nil {
+		log.Fatalln(jsonErr)
+	}
+
+	w.Write(jsonResp)
 }
 
-func GetRailPredictions(c *gin.Context) {
+func GetRailPredictions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var trainPredictions TrainsPredictionResponse
 
 	WMATA_API_KEY := utils.GetEnvVar("WMATA_API_KEY")
@@ -71,7 +80,13 @@ func GetRailPredictions(c *gin.Context) {
 
 	parseResponse(response, &trainPredictions)
 
-	c.IndentedJSON(http.StatusOK, trainPredictions.Trains)
+	jsonResp, jsonErr := json.Marshal(trainPredictions.Trains)
+
+	if jsonErr != nil {
+		log.Fatalln(jsonErr)
+	}
+
+	w.Write(jsonResp)
 }
 
 func parseResponse(resp *http.Response, obj interface{}) {

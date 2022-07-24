@@ -4,19 +4,21 @@ import (
 	"dc-metro-times-server/controllers"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
 func main() {
-	router := gin.Default()
+	router := mux.NewRouter()
 
-	router.GET("/rail/incidents", controllers.GetRailIncidents)
-	router.GET("/rail/realtime", controllers.GetRailPredictions)
+	router.HandleFunc("/rail/incidents", controllers.GetRailIncidents).Methods("GET")
+	router.HandleFunc("/rail/realtime", controllers.GetRailPredictions).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000"},
 	})
 
-	http.ListenAndServe(":5555", c.Handler(router))
+	handler := c.Handler(router)
+
+	http.ListenAndServe(":5555", handler)
 }
