@@ -10,7 +10,6 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-
 	router.HandleFunc("/rail/incidents", controllers.GetRailIncidents).Methods("GET")
 	router.HandleFunc("/rail/realtime", controllers.GetRailPredictions).Methods("GET")
 
